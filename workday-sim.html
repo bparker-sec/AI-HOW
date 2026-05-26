@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Workday | Sarah Mitchell — Personal Information</title>
+<style>
+  /* ---------- Reset / base ---------- */
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;font-family:"Source Sans 3","Source Sans Pro","Open Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#2d2d2d;background:#fff;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  a{color:#0875E1;text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font:inherit;cursor:pointer;border:0;background:transparent;color:inherit}
+
+  /* ---------- Layout ---------- */
+  .app{display:grid;grid-template-rows:60px 1fr;height:100vh;overflow:hidden}
+
+  /* ---------- Top bar ---------- */
+  header.topbar{
+    background:#fff;border-bottom:1px solid #e4e7eb;display:flex;align-items:center;
+    padding:0 16px;gap:16px;height:60px;position:relative;z-index:5
+  }
+  .topbar .hamburger{
+    width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#5a6470;cursor:pointer
+  }
+  .topbar .hamburger:hover{background:#f1f3f5}
+  .topbar .brand{display:flex;align-items:center;gap:0;height:40px;cursor:pointer;padding:0 6px}
+  .topbar .brand-logo{
+    width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+    font-weight:300;font-family:Georgia,serif;font-size:34px;line-height:1;
+    color:#F38B00;letter-spacing:-2px
+  }
+  .topbar .search-wrap{flex:1;display:flex;justify-content:center}
+  .topbar .searchbox{
+    width:100%;max-width:640px;height:40px;border-radius:24px;background:#f6f7f9;
+    display:flex;align-items:center;padding:0 18px;gap:10px;color:#7b8794;font-size:15px;
+    border:1px solid transparent;transition:border-color .15s,background .15s
+  }
+  .topbar .searchbox:hover,.topbar .searchbox:focus-within{background:#fff;border-color:#cdd2d7;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .topbar .searchbox input{
+    background:transparent;border:0;outline:none;color:#2d2d2d;flex:1;font:inherit
+  }
+  .topbar .searchbox input::placeholder{color:#9aa3ad}
+  .topbar .right-cluster{display:flex;align-items:center;gap:6px}
+  .topbar .right-cluster .icon-btn{
+    width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#5a6470;position:relative;cursor:pointer
+  }
+  .topbar .right-cluster .icon-btn:hover{background:#f1f3f5;color:#2d2d2d}
+  .topbar .right-cluster .icon-btn .badge{
+    position:absolute;top:4px;right:4px;min-width:18px;height:18px;padding:0 5px;background:#D9342B;color:#fff;
+    border-radius:9px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+    border:1.5px solid #fff
+  }
+  .topbar .avatar{
+    width:40px;height:40px;border-radius:50%;background:#9C7CC9;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;cursor:pointer;
+    margin-left:4px
+  }
+
+  /* ---------- Body ---------- */
+  .body{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 60px);overflow:hidden;background:#fff}
+
+  /* ---------- Left rail ---------- */
+  aside.rail{
+    background:#fff;border-right:1px solid #e4e7eb;padding:12px 0;display:flex;flex-direction:column;
+    overflow:auto
+  }
+  aside.rail .rail-item{
+    display:flex;align-items:center;gap:14px;padding:11px 16px 11px 22px;color:#3b4451;font-size:15px;cursor:pointer;
+    border-left:3px solid transparent;line-height:1.1;font-weight:500
+  }
+  aside.rail .rail-item .ri-icon{width:22px;display:flex;align-items:center;justify-content:center;color:#5a6470}
+  aside.rail .rail-item:hover{background:#f4f7fb}
+  aside.rail .rail-item.active{background:#e7f1fb;color:#0875E1;border-left-color:#0875E1;font-weight:600}
+  aside.rail .rail-item.active .ri-icon{color:#0875E1}
+  aside.rail .rail-item .ri-count{color:#7b8794;margin-left:2px;font-weight:400}
+  aside.rail .rail-divider{flex:1}
+  aside.rail .rail-bottom{border-top:1px solid #e4e7eb;padding:10px 0}
+  aside.rail .rail-bottom .rail-item{color:#0875E1}
+  aside.rail .rail-bottom .rail-item .ri-icon{color:#0875E1}
+  aside.rail .rail-collapse{
+    padding:14px 22px;color:#7b8794;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px
+  }
+
+  /* ---------- Main content ---------- */
+  main.main{display:grid;grid-template-columns:1fr 320px;overflow:hidden;background:#f7f8fa}
+
+  .content-pane{overflow:auto;padding:0}
+
+  /* Profile header bar */
+  .profile-topbar{
+    display:flex;align-items:center;gap:14px;padding:18px 32px;background:#fff;border-bottom:1px solid #e4e7eb;
+    position:sticky;top:0;z-index:3
+  }
+  .profile-topbar .back{
+    width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#5a6470;cursor:pointer
+  }
+  .profile-topbar .back:hover{background:#f1f3f5;color:#2d2d2d}
+  .profile-topbar .spacer{flex:1}
+  .profile-topbar .top-action{
+    display:flex;align-items:center;gap:6px;color:#0875E1;font-weight:600;font-size:14px;cursor:pointer;
+    padding:6px 12px;border-radius:18px
+  }
+  .profile-topbar .top-action:hover{background:#e7f1fb}
+  .profile-topbar .at-btn{
+    width:40px;height:40px;border:1px solid #d4d8dd;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    color:#5a6470;cursor:pointer;font-size:18px;font-weight:600
+  }
+  .profile-topbar .at-btn:hover{background:#f1f3f5}
+
+  /* Profile hero */
+  .profile-hero{
+    display:flex;align-items:center;gap:20px;padding:20px 32px 22px;background:#fff;border-bottom:1px solid #e4e7eb;
+  }
+  .profile-hero .avatar-big{
+    width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#D8B4F8 0%,#9C7CC9 100%);
+    color:#fff;font-weight:600;font-size:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    box-shadow:0 1px 3px rgba(0,0,0,.08)
+  }
+  .profile-hero h1{margin:0;font-size:26px;font-weight:600;color:#2d2d2d;letter-spacing:-.2px}
+  .profile-hero .sub{color:#5a6470;font-size:14px;margin-top:4px}
+  .profile-hero .sub a{color:#0875E1;font-weight:600}
+  .profile-hero .sub .sep{margin:0 8px;color:#cdd2d7}
+
+  /* Section tab strip */
+  .tabstrip{
+    display:flex;align-items:center;gap:24px;padding:0 32px;background:#fff;border-bottom:1px solid #e4e7eb;
+    position:sticky;top:75px;z-index:2;overflow-x:auto
+  }
+  .tabstrip button{
+    padding:14px 0;font-size:14px;font-weight:600;color:#5a6470;border-bottom:3px solid transparent;
+    white-space:nowrap;letter-spacing:.1px
+  }
+  .tabstrip button.active{color:#0875E1;border-bottom-color:#0875E1}
+  .tabstrip button:hover{color:#0875E1}
+
+  /* Content sections */
+  .sections{padding:24px 32px 80px}
+  .card{
+    background:#fff;border:1px solid #e4e7eb;border-radius:8px;margin-bottom:20px;
+    box-shadow:0 1px 2px rgba(15,30,45,.04)
+  }
+  .card-head{
+    display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid #eef0f3;
+  }
+  .card-head h2{margin:0;font-size:16px;font-weight:600;color:#2d2d2d}
+  .card-head .head-actions{margin-left:auto;display:flex;gap:4px}
+  .card-head .icon-pill{
+    width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#5a6470;cursor:pointer
+  }
+  .card-head .icon-pill:hover{background:#f1f3f5;color:#2d2d2d}
+  .card-body{padding:16px 22px}
+
+  /* Field grid */
+  .fld-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 36px}
+  .fld{display:flex;flex-direction:column;gap:3px;padding:6px 0}
+  .fld label{font-size:12px;color:#7b8794;font-weight:600;letter-spacing:.2px;text-transform:uppercase}
+  .fld .val{font-size:15px;color:#2d2d2d;line-height:1.4;display:flex;align-items:center;gap:8px;min-height:22px;word-break:break-word}
+  .fld .val.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,"Roboto Mono",monospace;font-size:14.5px;letter-spacing:.3px}
+  .fld .val .copy-btn{
+    width:24px;height:24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;
+    color:#7b8794;cursor:pointer;opacity:0;transition:opacity .15s
+  }
+  .fld:hover .val .copy-btn{opacity:1}
+  .fld .val .copy-btn:hover{background:#f1f3f5;color:#0875E1}
+  .fld .val .lock-ico{color:#9aa3ad}
+  .fld .val a{color:#0875E1}
+
+  .badge-tag{
+    display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;
+    background:#E7F4EC;color:#2A7A45
+  }
+  .badge-tag.amber{background:#FFF1D0;color:#8A6D11}
+  .badge-tag.blue{background:#E1EEFB;color:#0875E1}
+  .badge-tag.gray{background:#eef0f3;color:#5a6470}
+
+  /* Confidential banner */
+  .conf-banner{
+    background:#FFF6E6;border:1px solid #F5D38A;color:#7A5410;padding:10px 16px;border-radius:6px;
+    display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:18px
+  }
+  .conf-banner .ico{color:#C58200}
+
+  /* Right rail */
+  aside.right-rail{
+    background:#fff;border-left:1px solid #e4e7eb;overflow:auto;padding:20px
+  }
+  .right-rail h3{
+    margin:6px 0 10px;font-size:11px;font-weight:700;color:#7b8794;letter-spacing:.6px;text-transform:uppercase
+  }
+  .right-card{
+    border:1px solid #e4e7eb;border-radius:8px;padding:14px 16px;margin-bottom:18px;background:#fff
+  }
+  .right-card .r-field{display:flex;flex-direction:column;gap:3px;padding:6px 0}
+  .right-card .r-field + .r-field{border-top:1px solid #f1f3f5}
+  .right-card .r-field label{font-size:11px;color:#7b8794;font-weight:600;letter-spacing:.2px;text-transform:uppercase}
+  .right-card .r-field .v{font-size:14px;color:#2d2d2d}
+  .right-card .r-field .v.link{color:#0875E1;font-weight:600}
+  .right-card .r-field .v .ext{display:inline-block;margin-left:4px;color:#0875E1}
+
+  .quick-row{display:flex;gap:10px;padding:6px 0;align-items:center}
+  .quick-row .avatar-sm{width:32px;height:32px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;background:#5BB85A;flex-shrink:0}
+
+  /* Workday chat bubble */
+  .wd-chat{
+    position:fixed;bottom:22px;right:22px;width:48px;height:48px;border-radius:50%;
+    background:#F38B00;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:50
+  }
+  .wd-chat .w-mark{font-family:Georgia,serif;font-size:26px;line-height:1;font-weight:300;margin-top:-3px;letter-spacing:-2px}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:88px;right:22px;background:#2d2d2d;color:#fff;padding:10px 16px;border-radius:6px;
+    font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+    transform:translateY(8px);z-index:60;box-shadow:0 6px 20px rgba(0,0,0,.2)
+  }
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  /* Icons */
+  .ico{width:18px;height:18px;display:inline-block;vertical-align:middle}
+  .ico-lg{width:22px;height:22px}
+  .ico-sm{width:14px;height:14px}
+
+  /* Section header subnote */
+  .sec-note{font-size:13px;color:#7b8794;margin:-2px 0 14px}
+
+  /* Responsive */
+  @media (max-width:1180px){
+    .body{grid-template-columns:240px 1fr}
+    main.main{grid-template-columns:1fr 280px}
+  }
+  @media (max-width:980px){
+    main.main{grid-template-columns:1fr}
+    aside.right-rail{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============== TOP BAR ============== -->
+  <header class="topbar">
+    <div class="hamburger" title="Menu">
+      <svg class="ico ico-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </div>
+    <div class="brand" title="Workday Home">
+      <div class="brand-logo">w.</div>
+    </div>
+    <div class="search-wrap">
+      <div class="searchbox">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input placeholder="Search" />
+      </div>
+    </div>
+    <div class="right-cluster">
+      <div class="icon-btn" title="Workday Assistant">
+        <svg class="ico ico-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="icon-btn" title="Notifications">
+        <svg class="ico ico-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="icon-btn" title="Inbox">
+        <svg class="ico ico-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        <span class="badge">18</span>
+      </div>
+      <div class="avatar" title="Ben Parker (you)">BP</div>
+    </div>
+  </header>
+
+  <!-- ============== BODY ============== -->
+  <div class="body">
+    <!-- ============== LEFT RAIL ============== -->
+    <aside class="rail" id="leftRail">
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg></span>
+        <span>Summary</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span>Job</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+        <span>Compensation</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span>Contact</span>
+      </div>
+      <div class="rail-item active">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <span>Personal</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
+        <span>Benefits</span>
+        <span class="ri-count">(3)</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <span>Time Off</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+        <span>Pay</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+        <span>Performance</span>
+      </div>
+      <div class="rail-item">
+        <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+        <span>Career</span>
+      </div>
+      <div class="rail-divider"></div>
+      <div class="rail-bottom">
+        <div class="rail-item">
+          <span class="ri-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M21 3l-9 9"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg></span>
+          <span>View team org chart</span>
+        </div>
+        <div class="rail-collapse">
+          <svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Collapse</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============== MAIN ============== -->
+    <main class="main">
+      <div class="content-pane">
+
+        <!-- Profile top action bar (back, watch, @, etc.) -->
+        <div class="profile-topbar">
+          <div class="back" title="Back">
+            <svg class="ico ico-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </div>
+          <div class="spacer"></div>
+          <div class="top-action" title="Watch this worker">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>WATCH</span>
+          </div>
+          <div class="at-btn" title="Related actions">@</div>
+        </div>
+
+        <!-- Profile hero -->
+        <div class="profile-hero">
+          <div class="avatar-big">SM</div>
+          <div>
+            <h1>Sarah J. Mitchell</h1>
+            <div class="sub">
+              Marketing Specialist — Brand Strategy
+              <span class="sep">·</span>
+              <a href="#">Employee ID: EMP-2026-0847</a>
+              <span class="sep">·</span>
+              Pre-hire (Starts Jun 1, 2026)
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab strip -->
+        <div class="tabstrip">
+          <button>Overview</button>
+          <button>Personal Information</button>
+          <button class="active">IDs &amp; Documents</button>
+          <button>Contact</button>
+          <button>Emergency Contacts</button>
+          <button>Job</button>
+          <button>Photo</button>
+          <button>Legal Name</button>
+        </div>
+
+        <!-- Sections -->
+        <div class="sections">
+
+          <div class="conf-banner">
+            <span class="ico">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+            <div>
+              <strong>Confidential — HR Eyes Only.</strong>
+              The data on this page is classified as HR Confidential per policy SOP-HR-021. Viewing is logged. Export, copy, or transmission to systems outside the approved HR data zone (Workday, ServiceNow HR, ADP) requires manager + privacy office approval.
+            </div>
+          </div>
+
+          <!-- ============ PERSONAL INFORMATION ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Personal Information</h2>
+              <span class="badge-tag gray">Last modified Apr 28, 2026</span>
+              <div class="head-actions">
+                <div class="icon-pill" title="Edit"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+                <div class="icon-pill" title="More"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="fld-grid">
+                <div class="fld"><label>Legal Full Name</label><div class="val">Sarah Jeanette Mitchell</div></div>
+                <div class="fld"><label>Preferred Name</label><div class="val">Sarah Mitchell</div></div>
+                <div class="fld"><label>Date of Birth</label><div class="val mono">1994-03-22<button class="copy-btn" onclick="copyText('1994-03-22','DOB copied')" title="Copy"><svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>
+                <div class="fld"><label>Age</label><div class="val">32 years</div></div>
+                <div class="fld"><label>Gender</label><div class="val">Female</div></div>
+                <div class="fld"><label>Marital Status</label><div class="val">Married <span class="badge-tag" style="margin-left:6px">As of 2022-09-18</span></div></div>
+                <div class="fld"><label>Citizenship Status</label><div class="val">U.S. Citizen</div></div>
+                <div class="fld"><label>Country of Birth</label><div class="val">United States of America</div></div>
+                <div class="fld"><label>Race / Ethnicity</label><div class="val">White (Not Hispanic or Latino)</div></div>
+                <div class="fld"><label>Military Service</label><div class="val">— None on file —</div></div>
+                <div class="fld"><label>Disability Status</label><div class="val">Declined to self-identify</div></div>
+                <div class="fld"><label>Hire Date</label><div class="val">2026-06-01</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ NATIONAL IDENTIFIERS ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>National Identifiers</h2>
+              <span class="badge-tag amber">PII · Confidential</span>
+              <div class="head-actions">
+                <div class="icon-pill" title="Edit"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+                <div class="icon-pill" title="Audit log"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="sec-note">Government-issued identification numbers. Required for U.S. employment verification (Form I-9) and background screening. <a href="#">View audit trail</a></p>
+              <div class="fld-grid">
+                <div class="fld"><label>Social Security Number (SSN)</label>
+                  <div class="val mono" id="ssnField">
+                    <span id="ssnVal">532-94-7186</span>
+                    <button class="copy-btn" onclick="copyText('532-94-7186','SSN copied to clipboard')" title="Copy SSN"><svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                    <button class="copy-btn" onclick="toggleSSN()" title="Mask / unmask"><svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  </div>
+                </div>
+                <div class="fld"><label>SSN — Country</label><div class="val">United States of America</div></div>
+                <div class="fld"><label>SSN — Issued Date</label><div class="val">2009-08-14</div></div>
+                <div class="fld"><label>SSN — Verification Status</label><div class="val"><span class="badge-tag">SSA Verified</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ GOVERNMENT IDS ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Government Issued IDs</h2>
+              <span class="badge-tag amber">PII · Confidential</span>
+              <div class="head-actions">
+                <div class="icon-pill" title="Add ID"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                <div class="icon-pill" title="Edit"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="fld-grid">
+                <div class="fld"><label>U.S. Driver's License — Number</label>
+                  <div class="val mono">38214579
+                    <button class="copy-btn" onclick="copyText('38214579','Driver\\'s License copied')"><svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  </div>
+                </div>
+                <div class="fld"><label>Driver's License — State</label><div class="val">Texas (TX)</div></div>
+                <div class="fld"><label>Driver's License — Class</label><div class="val">Class C (Non-Commercial)</div></div>
+                <div class="fld"><label>Driver's License — Expiration</label><div class="val">2031-03-22</div></div>
+                <div class="fld"><label>U.S. Passport — Number</label>
+                  <div class="val mono">547986123
+                    <button class="copy-btn" onclick="copyText('547986123','Passport copied')"><svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  </div>
+                </div>
+                <div class="fld"><label>U.S. Passport — Type</label><div class="val">Passport Book (P)</div></div>
+                <div class="fld"><label>U.S. Passport — Issued</label><div class="val">2019-11-04 · New Orleans, LA</div></div>
+                <div class="fld"><label>U.S. Passport — Expiration</label><div class="val">2029-11-03 <span class="badge-tag blue" style="margin-left:6px">Valid</span></div></div>
+                <div class="fld"><label>Real ID Status</label><div class="val"><span class="badge-tag">Compliant</span></div></div>
+                <div class="fld"><label>I-9 Form Status</label><div class="val"><span class="badge-tag amber">Pending — due 2026-06-04</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ CONTACT INFO ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Contact Information</h2>
+              <div class="head-actions">
+                <div class="icon-pill" title="Edit"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="fld-grid">
+                <div class="fld"><label>Home Address</label><div class="val">4218 Bouldin Avenue, Apt 3B<br/>Austin, TX 78704<br/>United States of America</div></div>
+                <div class="fld"><label>Mailing Address</label><div class="val">Same as Home</div></div>
+                <div class="fld"><label>Personal Phone</label>
+                  <div class="val mono">(512) 555-0184
+                    <button class="copy-btn" onclick="copyText('(512) 555-0184','Phone copied')"><svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  </div>
+                </div>
+                <div class="fld"><label>Work Phone</label><div class="val mono">— Not yet assigned —</div></div>
+                <div class="fld"><label>Personal Email</label><div class="val">sarah.j.mitchell@gmail.com</div></div>
+                <div class="fld"><label>Work Email</label><div class="val">smitchell@example-corp.com</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ EMERGENCY CONTACTS ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Emergency Contacts</h2>
+            </div>
+            <div class="card-body">
+              <div class="fld-grid">
+                <div class="fld"><label>Primary — Name</label><div class="val">Michael R. Mitchell</div></div>
+                <div class="fld"><label>Primary — Relationship</label><div class="val">Spouse</div></div>
+                <div class="fld"><label>Primary — Phone</label><div class="val mono">(512) 555-0192</div></div>
+                <div class="fld"><label>Primary — Email</label><div class="val">m.mitchell@protonmail.com</div></div>
+                <div class="fld"><label>Secondary — Name</label><div class="val">Linda K. Mitchell</div></div>
+                <div class="fld"><label>Secondary — Relationship</label><div class="val">Mother</div></div>
+                <div class="fld"><label>Secondary — Phone</label><div class="val mono">(504) 555-0317</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ JOB ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Job &amp; Employment</h2>
+            </div>
+            <div class="card-body">
+              <div class="fld-grid">
+                <div class="fld"><label>Position</label><div class="val">Marketing Specialist II</div></div>
+                <div class="fld"><label>Business Title</label><div class="val">Brand Strategy Specialist</div></div>
+                <div class="fld"><label>Cost Center</label><div class="val">CC-4120 · Brand &amp; Creative</div></div>
+                <div class="fld"><label>Department</label><div class="val">Marketing — Brand Strategy</div></div>
+                <div class="fld"><label>Manager</label><div class="val"><a href="#">David Chen</a></div></div>
+                <div class="fld"><label>Location</label><div class="val">Austin, TX (Hybrid) · Bldg HQ-2 · Desk H2-4-118</div></div>
+                <div class="fld"><label>Employee Type</label><div class="val">Regular · Full-time</div></div>
+                <div class="fld"><label>Start Date</label><div class="val">2026-06-01</div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ RIGHT RAIL ============ -->
+      <aside class="right-rail">
+        <h3>Worker</h3>
+        <div class="right-card">
+          <div class="r-field">
+            <label>Worker</label>
+            <div class="v link">Sarah J. Mitchell <span class="ext">↗</span></div>
+          </div>
+          <div class="r-field">
+            <label>Position</label>
+            <div class="v">Marketing Specialist II</div>
+          </div>
+          <div class="r-field">
+            <label>Employee ID</label>
+            <div class="v">EMP-2026-0847</div>
+          </div>
+          <div class="r-field">
+            <label>Manager</label>
+            <div class="v link">David Chen <span class="ext">↗</span></div>
+          </div>
+          <div class="r-field">
+            <label>Location</label>
+            <div class="v link">Austin, TX (Hybrid) <span class="ext">↗</span></div>
+          </div>
+          <div class="r-field">
+            <label>Start Date</label>
+            <div class="v">June 1, 2026</div>
+          </div>
+        </div>
+
+        <h3>Onboarding Tasks</h3>
+        <div class="right-card">
+          <div class="quick-row"><div class="avatar-sm">✓</div><div><div style="font-size:13px;font-weight:600">Personal data collected</div><div style="font-size:12px;color:#7b8794">Completed Apr 28</div></div></div>
+          <div class="quick-row"><div class="avatar-sm" style="background:#E8C547;color:#5a4500">!</div><div><div style="font-size:13px;font-weight:600">Background check verification</div><div style="font-size:12px;color:#7b8794">In progress — INC0010234</div></div></div>
+          <div class="quick-row"><div class="avatar-sm" style="background:#cdd2d7;color:#5a6470">○</div><div><div style="font-size:13px;font-weight:600">Form I-9 (Section 2)</div><div style="font-size:12px;color:#7b8794">Due Jun 4, 2026</div></div></div>
+          <div class="quick-row"><div class="avatar-sm" style="background:#cdd2d7;color:#5a6470">○</div><div><div style="font-size:13px;font-weight:600">Direct deposit setup</div><div style="font-size:12px;color:#7b8794">Pending employee action</div></div></div>
+        </div>
+
+        <h3>Recent Activity</h3>
+        <div class="right-card">
+          <div style="font-size:13px;color:#5a6470;line-height:1.5">
+            <p style="margin:0 0 8px"><strong style="color:#2d2d2d">Rachel Thompson</strong> viewed Personal Information.<br/><span style="color:#7b8794;font-size:12px">Today, 9:18 AM</span></p>
+            <p style="margin:0 0 8px"><strong style="color:#2d2d2d">David Chen</strong> updated Job Profile.<br/><span style="color:#7b8794;font-size:12px">Apr 28, 2026</span></p>
+            <p style="margin:0"><strong style="color:#2d2d2d">System</strong> auto-verified SSN with SSA.<br/><span style="color:#7b8794;font-size:12px">Apr 28, 2026</span></p>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+</div>
+
+<!-- Chat bubble -->
+<div class="wd-chat" title="Workday Assistant"><span class="w-mark">w.</span></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* Tab switching (visual only) */
+  document.querySelectorAll('.tabstrip button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabstrip button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  /* Left rail navigation (visual only) */
+  document.querySelectorAll('.rail .rail-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.rail .rail-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  /* Copy helper */
+  async function copyText(txt, msg){
+    try {
+      await navigator.clipboard.writeText(txt);
+      showToast(msg || 'Copied');
+    } catch(e){
+      // Fallback for environments where clipboard API isn't available
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); showToast(msg || 'Copied'); }
+      catch(_) { showToast('Copy blocked by browser'); }
+      ta.remove();
+    }
+  }
+
+  /* SSN mask toggle */
+  let ssnMasked = false;
+  const ssnReal = '532-94-7186';
+  const ssnMask = '•••-••-7186';
+  function toggleSSN(){
+    const el = document.getElementById('ssnVal');
+    ssnMasked = !ssnMasked;
+    el.textContent = ssnMasked ? ssnMask : ssnReal;
+    showToast(ssnMasked ? 'SSN masked' : 'SSN revealed');
+  }
+
+  /* Toast */
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+</script>
+</body>
+</html>

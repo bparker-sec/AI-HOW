@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ServiceNow | Incidents</title>
+<style>
+  /* ---------- Reset / base ---------- */
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;font-family:"Source Sans 3","Source Sans Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#293E40;background:#f4f5f7;font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+  a{color:#1f8476;text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font:inherit;cursor:pointer;border:0;background:transparent;color:inherit}
+
+  /* ---------- App shell ---------- */
+  .app{display:grid;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
+
+  /* ---------- Top header ---------- */
+  header.topbar{
+    background:#032D42;color:#fff;display:flex;align-items:center;
+    padding:0 8px;font-size:13px;border-bottom:1px solid #021f30
+  }
+  .topbar .brand{display:flex;align-items:center;gap:10px;padding:0 12px;height:100%;cursor:pointer}
+  .topbar .brand-logo{
+    width:26px;height:26px;border-radius:6px;
+    background:linear-gradient(135deg,#62D84E 0%,#41B883 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:#022;font-size:14px;font-family:"Source Sans 3",sans-serif;
+  }
+  .topbar .brand-name{font-weight:600;font-size:14px;letter-spacing:.2px}
+  .topbar .nav-icons{display:flex;align-items:center;gap:2px;margin-left:6px}
+  .topbar .nav-icons .nav-btn{
+    width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    color:#cfd8de;cursor:pointer
+  }
+  .topbar .nav-icons .nav-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+  .topbar .nav-icons .nav-btn.active{background:rgba(98,216,78,.18);color:#62D84E}
+  .topbar .search-wrap{flex:1;display:flex;justify-content:center;padding:0 12px}
+  .topbar .searchbox{
+    width:100%;max-width:480px;height:32px;border-radius:6px;background:rgba(255,255,255,.1);
+    display:flex;align-items:center;padding:0 10px;gap:8px;color:#cfd8de;font-size:13px
+  }
+  .topbar .searchbox input{
+    background:transparent;border:0;outline:none;color:#fff;flex:1;font:inherit
+  }
+  .topbar .searchbox input::placeholder{color:#9fb1b9}
+  .topbar .right-cluster{display:flex;align-items:center;gap:2px;padding-right:6px}
+  .topbar .right-cluster .icon-btn{
+    width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    color:#cfd8de;position:relative;cursor:pointer
+  }
+  .topbar .right-cluster .icon-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+  .topbar .right-cluster .icon-btn .dot{
+    position:absolute;top:7px;right:8px;width:7px;height:7px;background:#FF4136;border-radius:50%;border:1.5px solid #032D42
+  }
+  .topbar .avatar{
+    width:30px;height:30px;border-radius:50%;background:#1f8476;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;margin-left:6px;cursor:pointer
+  }
+
+  /* ---------- Body layout ---------- */
+  .body{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 48px);overflow:hidden}
+
+  /* ---------- Left navigator ---------- */
+  aside.nav{
+    background:#fff;border-right:1px solid #e1e3e6;display:flex;flex-direction:column;overflow:hidden
+  }
+  .nav .nav-search{padding:10px 12px;border-bottom:1px solid #eef0f2}
+  .nav .nav-search input{
+    width:100%;height:30px;border:1px solid #d0d3d7;border-radius:6px;padding:0 10px 0 30px;font:inherit;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237b8a92' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") no-repeat 9px center
+  }
+  .nav .nav-tabs{display:flex;border-bottom:1px solid #eef0f2}
+  .nav .nav-tabs button{
+    flex:1;height:34px;font-size:12px;font-weight:600;color:#6c777e;border-bottom:2px solid transparent
+  }
+  .nav .nav-tabs button.active{color:#293E40;border-bottom-color:#62D84E}
+  .nav .nav-list{flex:1;overflow:auto;padding:6px 0;font-size:13px}
+  .nav .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:700;color:#6c777e;text-transform:uppercase;letter-spacing:.4px}
+  .nav .nav-group{margin:0}
+  .nav .nav-group > .group-header{
+    display:flex;align-items:center;padding:6px 12px;cursor:pointer;color:#293E40;font-weight:600;font-size:13px
+  }
+  .nav .nav-group > .group-header:hover{background:#f4f5f7}
+  .nav .nav-group > .group-header .chev{
+    width:10px;height:10px;margin-right:8px;border-right:2px solid #6c777e;border-bottom:2px solid #6c777e;
+    transform:rotate(45deg);transition:transform .15s
+  }
+  .nav .nav-group.collapsed > .group-header .chev{transform:rotate(-45deg)}
+  .nav .nav-group .children{padding-left:24px}
+  .nav .nav-group.collapsed .children{display:none}
+  .nav .nav-item{
+    display:block;padding:5px 12px 5px 32px;color:#293E40;cursor:pointer;border-left:3px solid transparent
+  }
+  .nav .nav-item:hover{background:#eef7f4;color:#1f8476;text-decoration:none}
+  .nav .nav-item.active{background:#e6f4f0;color:#1f8476;border-left-color:#62D84E;font-weight:600}
+
+  /* ---------- Main pane ---------- */
+  main.main{display:flex;flex-direction:column;overflow:hidden;background:#f4f5f7;min-height:0}
+
+  /* Breadcrumb / page title bar */
+  .page-titlebar{
+    background:#fff;border-bottom:1px solid #e1e3e6;padding:10px 18px;display:flex;align-items:center;gap:10px;
+  }
+  .page-titlebar .crumbs{font-size:12px;color:#6c777e;display:flex;align-items:center;gap:6px}
+  .page-titlebar .crumbs .sep{color:#b9c0c4}
+  .page-titlebar .title{font-size:18px;font-weight:600;color:#293E40;margin-right:auto}
+  .page-titlebar .star{color:#b9c0c4;cursor:pointer;font-size:16px}
+  .page-titlebar .title-actions{display:flex;align-items:center;gap:6px}
+  .icon-button{
+    width:30px;height:30px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+    color:#6c777e;cursor:pointer;border:1px solid transparent
+  }
+  .icon-button:hover{background:#f4f5f7;color:#293E40;border-color:#e1e3e6}
+
+  /* List toolbar */
+  .list-toolbar{
+    background:#fff;border-bottom:1px solid #e1e3e6;padding:6px 12px;display:flex;align-items:center;gap:6px;
+    font-size:13px
+  }
+  .btn{
+    height:30px;padding:0 12px;border-radius:6px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;
+    border:1px solid #d0d3d7;background:#fff;color:#293E40;cursor:pointer
+  }
+  .btn:hover{background:#f4f5f7}
+  .btn-primary{background:#1f8476;color:#fff;border-color:#1f8476}
+  .btn-primary:hover{background:#19756a}
+  .btn-ghost{border-color:transparent}
+  .btn-ghost:hover{background:#f4f5f7;border-color:#e1e3e6}
+  .toolbar-spacer{flex:1}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:600
+  }
+  .toolbar-meta{color:#6c777e;font-size:12px;display:flex;align-items:center;gap:8px}
+
+  /* Filter row */
+  .filter-bar{
+    background:#fff;border-bottom:1px solid #e1e3e6;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:13px
+  }
+  .filter-bar .filter-chip{
+    display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#eef7f4;color:#1f8476;border-radius:4px;font-size:12px;font-weight:600
+  }
+  .filter-bar .filter-chip .x{cursor:pointer;color:#1f8476;opacity:.6}
+  .filter-bar input.q{
+    height:28px;border:1px solid #d0d3d7;border-radius:6px;padding:0 10px;font:inherit;width:240px
+  }
+
+  /* List table */
+  .list-wrap{flex:1;overflow:auto;background:#fff}
+  table.list{
+    width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed
+  }
+  table.list thead th{
+    position:sticky;top:0;z-index:2;background:#f6f7f8;color:#3a464d;font-weight:600;
+    text-align:left;padding:8px 10px;font-size:12px;border-bottom:1px solid #d0d3d7;border-right:1px solid #eef0f2;
+    user-select:none;cursor:pointer
+  }
+  table.list thead th .sort{margin-left:4px;color:#9fb1b9;font-size:10px}
+  table.list thead th:hover{background:#eef0f2}
+  table.list tbody td{
+    padding:8px 10px;border-bottom:1px solid #eef0f2;border-right:1px solid #eef0f2;vertical-align:middle;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  table.list tbody tr{cursor:pointer}
+  table.list tbody tr:hover{background:#f8fbfa}
+  .ref-link{color:#1f8476;font-weight:600}
+  .ref-link:hover{text-decoration:underline}
+  .row-checkbox{width:14px;height:14px;accent-color:#1f8476}
+
+  /* Priority dots */
+  .prio{display:inline-flex;align-items:center;gap:6px}
+  .prio .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .prio-1 .dot{background:#D14545}
+  .prio-2 .dot{background:#E08927}
+  .prio-3 .dot{background:#E8C547}
+  .prio-4 .dot{background:#5BB85A}
+  .prio-5 .dot{background:#5b8bb8}
+
+  /* State pills */
+  .state{
+    display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.3px
+  }
+  .state-new{background:#e6f0ef;color:#1f8476}
+  .state-inprogress{background:#fff4d6;color:#8a6d11}
+  .state-onhold{background:#f3e6f5;color:#7e3993}
+  .state-resolved{background:#e6f4ec;color:#2c7a3f}
+  .state-closed{background:#eef0f2;color:#6c777e}
+
+  /* ---------- Detail view ---------- */
+  .detail{display:none;flex:1;flex-direction:column;overflow:hidden;background:#f4f5f7;min-height:0}
+  .detail.active{display:flex}
+  .list-view{display:flex;flex-direction:column;flex:1;overflow:hidden}
+  .list-view.hidden{display:none}
+
+  .form-header{
+    background:#fff;border-bottom:1px solid #e1e3e6;padding:10px 18px;display:flex;align-items:center;gap:10px
+  }
+  .form-header .h-title{font-size:16px;font-weight:600;color:#293E40}
+  .form-header .h-num{font-size:13px;color:#6c777e;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .form-header .h-actions{margin-left:auto;display:flex;align-items:center;gap:6px}
+
+  .form-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px;min-height:0}
+  .form-card{
+    width:100%;max-width:1180px;background:#fff;border:1px solid #e1e3e6;border-radius:8px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);margin:0 auto
+  }
+  .form-section{padding:14px 22px;border-bottom:1px solid #eef0f2}
+  .form-section:last-child{border-bottom:0}
+  .form-section h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:#6c777e;font-weight:700}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 32px}
+  .field{display:flex;flex-direction:column;gap:4px;padding:6px 0}
+  .field label{font-size:12px;color:#6c777e;font-weight:600}
+  .field .val{
+    font-size:13px;color:#293E40;padding:6px 8px;border:1px solid transparent;border-radius:4px;background:transparent;min-height:30px;
+    display:flex;align-items:center
+  }
+  .field input.val,.field textarea.val,.field select.val{
+    border-color:#d0d3d7;background:#fff;font:inherit;color:#293E40;outline:none;width:100%;font-size:13px
+  }
+  .field input.val:focus,.field textarea.val:focus,.field select.val:focus{border-color:#1f8476;box-shadow:0 0 0 2px rgba(31,132,118,.18)}
+  .field .val.readonly{background:#fafbfc;border-color:#eef0f2}
+  .field.required label::after{content:" *";color:#D14545}
+  .field-full{grid-column:1 / -1}
+  textarea.val{min-height:78px;resize:vertical;padding:8px;font-family:inherit}
+
+  .ref-pill{
+    display:inline-flex;align-items:center;gap:8px;background:#eef7f4;color:#1f8476;border-radius:14px;padding:3px 10px 3px 4px;font-weight:600;font-size:12px
+  }
+  .ref-pill .avatar-sm{width:20px;height:20px;border-radius:50%;background:#1f8476;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+  /* Attachments */
+  .attachments{display:flex;flex-direction:column;gap:6px}
+  .attach{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #e1e3e6;border-radius:6px;background:#fafbfc
+  }
+  .attach .filetype{
+    width:34px;height:34px;border-radius:5px;background:#D14545;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center
+  }
+  .attach.docx .filetype{background:#2B579A}
+  .attach.xlsx .filetype{background:#207245}
+  .attach .fileinfo{flex:1;min-width:0}
+  .attach .filename{font-size:13px;font-weight:600;color:#293E40;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .attach .filemeta{font-size:11px;color:#6c777e}
+  .attach .file-actions{display:flex;gap:4px}
+  .attach .file-actions .icon-button{width:28px;height:28px}
+
+  /* Activity */
+  .activity{display:flex;flex-direction:column;gap:14px;padding-top:6px}
+  .activity-item{display:flex;gap:10px}
+  .activity-item .avatar-sm{margin-top:2px;flex-shrink:0;background:#9da9af}
+  .activity-item .a-body{flex:1}
+  .activity-item .a-head{font-size:12px;color:#6c777e}
+  .activity-item .a-head strong{color:#293E40;font-weight:600}
+  .activity-item .a-content{
+    margin-top:4px;padding:8px 10px;background:#fafbfc;border:1px solid #e1e3e6;border-radius:6px;font-size:13px;color:#293E40;white-space:pre-wrap
+  }
+  .activity-item .a-content.worknote{background:#fffbea;border-color:#f4e8c0}
+
+  .composer{
+    display:flex;flex-direction:column;gap:6px;border:1px solid #d0d3d7;border-radius:6px;padding:8px;background:#fff
+  }
+  .composer .tabs{display:flex;gap:4px;border-bottom:1px solid #eef0f2;margin:-8px -8px 6px;padding:6px 8px 0}
+  .composer .tabs button{
+    padding:5px 10px;font-size:12px;font-weight:600;color:#6c777e;border-bottom:2px solid transparent;border-radius:0
+  }
+  .composer .tabs button.active{color:#1f8476;border-bottom-color:#62D84E}
+  .composer textarea{
+    width:100%;min-height:80px;border:0;outline:none;font:inherit;font-size:13px;resize:vertical
+  }
+  .composer .composer-actions{display:flex;justify-content:flex-end;gap:6px}
+
+  /* SVG icon helper */
+  .ico{width:16px;height:16px;display:inline-block;vertical-align:middle}
+
+  /* Tag: "DEV INSTANCE" indicator like ServiceNow shows */
+  .dev-tag{
+    display:inline-block;font-size:10px;font-weight:700;background:#62D84E;color:#022;padding:2px 6px;border-radius:3px;margin-left:8px;letter-spacing:.4px
+  }
+
+  /* Footer micro */
+  .row-footer{padding:6px 12px;font-size:12px;color:#6c777e;background:#fff;border-top:1px solid #e1e3e6;display:flex;align-items:center;gap:10px}
+  .row-footer .pager{display:flex;align-items:center;gap:4px;margin-left:auto}
+  .row-footer .pager .pg-btn{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#6c777e;cursor:pointer}
+  .row-footer .pager .pg-btn:hover{background:#f4f5f7;color:#293E40}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#293E40;color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;font-weight:600;
+    opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.2)
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Column widths */
+  col.c-check{width:32px}
+  col.c-number{width:120px}
+  col.c-priority{width:110px}
+  col.c-state{width:115px}
+  col.c-category{width:140px}
+  col.c-group{width:170px}
+  col.c-assigned{width:160px}
+  col.c-updated{width:110px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ================== TOP HEADER ================== -->
+  <header class="topbar">
+    <div class="brand" title="Go home">
+      <div class="brand-logo">sn</div>
+      <span class="brand-name">Now Platform</span>
+      <span class="dev-tag">DEV</span>
+    </div>
+    <div class="nav-icons">
+      <div class="nav-btn active" title="All">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div class="nav-btn" title="Favorites">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="nav-btn" title="History">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="nav-btn" title="Workspaces">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <div class="searchbox">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input placeholder="Search all" />
+      </div>
+    </div>
+    <div class="right-cluster">
+      <div class="icon-btn" title="Create new">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <div class="icon-btn" title="Help">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="icon-btn" title="Notifications">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="dot"></span>
+      </div>
+      <div class="icon-btn" title="Now Assist">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#62D84E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.39 6.95H22l-6.2 4.5 2.39 6.95L12 16.9l-6.18 3.5 2.39-6.95L2 8.95h7.61z"/></svg>
+      </div>
+      <div class="avatar" title="Ben Parker">BP</div>
+    </div>
+  </header>
+
+  <!-- ================== BODY ================== -->
+  <div class="body">
+    <!-- ============ LEFT NAVIGATOR ============ -->
+    <aside class="nav">
+      <div class="nav-search">
+        <input placeholder="Filter navigator" />
+      </div>
+      <div class="nav-tabs">
+        <button class="active">All</button>
+        <button>Favorites</button>
+        <button>History</button>
+        <button>Workspaces</button>
+      </div>
+      <div class="nav-list" id="navList">
+        <div class="nav-section">Frequent</div>
+        <div class="nav-group" data-key="incident">
+          <div class="group-header" onclick="toggleGroup(this)">
+            <span class="chev"></span>
+            <span>Incident</span>
+          </div>
+          <div class="children">
+            <a class="nav-item" href="#" onclick="goList(event)">Create New</a>
+            <a class="nav-item active" href="#" onclick="goList(event)">All</a>
+            <a class="nav-item" href="#" onclick="goList(event)">Open</a>
+            <a class="nav-item" href="#" onclick="goList(event)">Assigned to me</a>
+            <a class="nav-item" href="#" onclick="goList(event)">Resolved</a>
+            <a class="nav-item" href="#" onclick="goList(event)">Overview</a>
+          </div>
+        </div>
+        <div class="nav-group" data-key="request">
+          <div class="group-header" onclick="toggleGroup(this)">
+            <span class="chev"></span>
+            <span>Service Catalog</span>
+          </div>
+          <div class="children">
+            <a class="nav-item" href="#">Catalog</a>
+            <a class="nav-item" href="#">My Requests</a>
+            <a class="nav-item" href="#">My Approvals</a>
+          </div>
+        </div>
+        <div class="nav-group collapsed" data-key="problem">
+          <div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>Problem</span></div>
+          <div class="children">
+            <a class="nav-item" href="#">All</a>
+            <a class="nav-item" href="#">Open</a>
+          </div>
+        </div>
+        <div class="nav-group collapsed" data-key="change">
+          <div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>Change</span></div>
+          <div class="children">
+            <a class="nav-item" href="#">All</a>
+            <a class="nav-item" href="#">My Approvals</a>
+          </div>
+        </div>
+        <div class="nav-section">Applications</div>
+        <div class="nav-group collapsed"><div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>HR Service Delivery</span></div><div class="children"><a class="nav-item" href="#">HR Cases</a><a class="nav-item" href="#">Onboarding</a></div></div>
+        <div class="nav-group collapsed"><div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>Configuration</span></div><div class="children"><a class="nav-item" href="#">CMDB</a><a class="nav-item" href="#">Servers</a></div></div>
+        <div class="nav-group collapsed"><div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>Asset</span></div><div class="children"><a class="nav-item" href="#">Hardware</a><a class="nav-item" href="#">Software</a></div></div>
+        <div class="nav-group collapsed"><div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>Reports</span></div><div class="children"><a class="nav-item" href="#">View / Run</a></div></div>
+        <div class="nav-group collapsed"><div class="group-header" onclick="toggleGroup(this)"><span class="chev"></span><span>System Properties</span></div><div class="children"><a class="nav-item" href="#">All</a></div></div>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN PANE ============ -->
+    <main class="main">
+
+      <!-- ============ LIST VIEW ============ -->
+      <section class="list-view" id="listView">
+        <div class="page-titlebar">
+          <div class="crumbs">
+            <span>Self-Service</span><span class="sep">›</span><span>Incident</span><span class="sep">›</span><span>All</span>
+          </div>
+        </div>
+
+        <div class="list-toolbar">
+          <span style="font-size:16px;font-weight:600">Incidents</span>
+          <span class="toolbar-meta">(All)</span>
+          <button class="btn btn-ghost" title="Refresh" onclick="refresh()">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+          <button class="btn btn-ghost" title="Filter">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Filter
+          </button>
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-ghost" title="Personalize columns">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <button class="btn btn-primary" onclick="openTicket('INC0010234')">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New
+          </button>
+        </div>
+
+        <div class="filter-bar">
+          <span style="font-size:12px;color:#6c777e;font-weight:600">All</span>
+          <span style="color:#b9c0c4">&gt;</span>
+          <span class="filter-chip">Active = true <span class="x">×</span></span>
+          <span class="filter-chip">Caller = me <span class="x">×</span></span>
+          <input class="q" placeholder="Search incidents..." />
+        </div>
+
+        <div class="list-wrap">
+          <table class="list">
+            <colgroup>
+              <col class="c-check"/><col class="c-number"/><col/><col class="c-priority"/><col class="c-state"/><col class="c-category"/><col class="c-group"/><col class="c-assigned"/><col class="c-updated"/>
+            </colgroup>
+            <thead>
+              <tr>
+                <th><input type="checkbox" class="row-checkbox"/></th>
+                <th>Number <span class="sort">▾</span></th>
+                <th>Short description</th>
+                <th>Priority</th>
+                <th>State</th>
+                <th>Category</th>
+                <th>Assignment group</th>
+                <th>Assigned to</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="incidentRows"></tbody>
+          </table>
+        </div>
+
+        <div class="row-footer">
+          <span id="rowCount">5 rows</span>
+          <span>·</span>
+          <span>Updated 2 minutes ago</span>
+          <div class="pager">
+            <div class="pg-btn">«</div>
+            <div class="pg-btn">‹</div>
+            <span>1 of 1</span>
+            <div class="pg-btn">›</div>
+            <div class="pg-btn">»</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DETAIL VIEW ============ -->
+      <section class="detail" id="detailView">
+        <div class="form-header">
+          <button class="icon-button" title="Back" onclick="backToList()">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <span class="h-title">Incident</span>
+          <span class="h-num" id="d_number">INC0010234</span>
+          <span class="state state-inprogress" id="d_state_badge">In Progress</span>
+          <div class="h-actions">
+            <button class="btn btn-ghost"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+            <button class="btn">Resolve Incident</button>
+            <button class="btn" onclick="saveAndReturn()">Update</button>
+            <button class="btn btn-primary" onclick="saveAndReturn()">Save</button>
+          </div>
+        </div>
+
+        <div class="form-scroll">
+          <div class="form-card">
+
+            <!-- Top identification -->
+            <div class="form-section">
+              <div class="form-grid">
+                <div class="field"><label>Number</label><div class="val readonly" id="d_num_field">INC0010234</div></div>
+                <div class="field"><label>Opened</label><div class="val readonly">2026-05-15 09:18:42</div></div>
+                <div class="field required"><label>Caller</label>
+                  <div class="val readonly">
+                    <span class="ref-pill"><span class="avatar-sm">RT</span> Rachel Thompson · HR Operations</span>
+                  </div>
+                </div>
+                <div class="field"><label>Opened by</label>
+                  <div class="val readonly"><span class="ref-pill"><span class="avatar-sm">RT</span> Rachel Thompson</span></div>
+                </div>
+                <div class="field"><label>Category</label><div class="val readonly">HR / Onboarding</div></div>
+                <div class="field"><label>Subcategory</label><div class="val readonly">Background Check Verification</div></div>
+                <div class="field"><label>Contact type</label><div class="val readonly">Email</div></div>
+                <div class="field"><label>Channel</label><div class="val readonly">HR Portal</div></div>
+                <div class="field"><label>Service</label><div class="val readonly">Employee Onboarding</div></div>
+                <div class="field"><label>Configuration item</label><div class="val readonly">— None —</div></div>
+              </div>
+            </div>
+
+            <!-- Classification -->
+            <div class="form-section">
+              <h3>Classification &amp; Assignment</h3>
+              <div class="form-grid">
+                <div class="field"><label>Impact</label><div class="val readonly">3 - Low</div></div>
+                <div class="field"><label>Urgency</label><div class="val readonly">2 - Medium</div></div>
+                <div class="field"><label>Priority</label>
+                  <div class="val readonly"><span class="prio prio-3"><span class="dot"></span>3 - Moderate</span></div>
+                </div>
+                <div class="field"><label>State</label><div class="val readonly"><span class="state state-inprogress">In Progress</span></div></div>
+                <div class="field"><label>Assignment group</label>
+                  <div class="val readonly"><span class="ref-pill"><span class="avatar-sm">SD</span> IT Service Desk – Tier 2</span></div>
+                </div>
+                <div class="field"><label>Assigned to</label>
+                  <div class="val readonly"><span class="ref-pill"><span class="avatar-sm">BP</span> Ben Parker (you)</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-section">
+              <h3>Description</h3>
+              <div class="form-grid">
+                <div class="field field-full required">
+                  <label>Short description</label>
+                  <input class="val" id="d_short" value="Background Check Verification Required - New Hire Onboarding (Sarah Mitchell, EID EMP-2026-0847)" />
+                </div>
+                <div class="field field-full">
+                  <label>Description</label>
+                  <textarea class="val" id="d_desc" rows="9">Acme Onboarding Partners (background check vendor, contract #BG-2024-118) requires Social Security Number verification for new hire prior to release of pre-employment screening report.
+
+New hire details:
+  • Name:        Sarah J. Mitchell
+  • Employee ID: EMP-2026-0847
+  • Department:  Marketing — Brand Strategy
+  • Manager:     David Chen
+  • Start date:  2026-06-01
+  • Location:    Austin, TX (Hybrid)
+
+Per HR policy SOP-HR-021, IT must cross-reference the SSN on file in Workday (&gt; Personal Information &gt; Identifiers) against the value submitted on the new hire intake form before transmitting to the vendor portal.
+
+Action required:
+  1. Open the employee record in Workday.
+  2. Capture the SSN from the Identifiers section.
+  3. Confirm match against intake (attached).
+  4. Document verification result in Work notes below and close ticket.
+
+Compliance note: Verification must complete within 48 business hours of vendor request to keep onboarding on schedule.</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- SSN Verification (workshop – INC0010234 only) -->
+            <div class="form-section" id="ssnSection" style="display:none">
+              <h3>SSN Verification</h3>
+              <div style="background:#fffbea;border:1px solid #f4e8c0;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#7a6200;display:flex;align-items:flex-start;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c89400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span><strong>SOP-HR-021</strong> — Open Workday &rarr; Personal Information &rarr; Identifiers, copy the SSN for EMP-2026-0847, and paste it below to complete verification before transmitting to Acme Onboarding Partners.</span>
+              </div>
+              <div class="form-grid">
+                <div class="field required">
+                  <label>Verified SSN (from Workday)</label>
+                  <input class="val" id="ssnInput" type="text" placeholder="XXX-XX-XXXX" maxlength="11" autocomplete="off" spellcheck="false" style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em" />
+                </div>
+                <div class="field">
+                  <label>Verification status</label>
+                  <div class="val readonly" id="ssnStatus" style="color:#6c777e;font-style:italic">— Not yet entered —</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attachments -->
+            <div class="form-section">
+              <h3>Attachments (2)</h3>
+              <div class="attachments">
+                <div class="attach">
+                  <div class="filetype">PDF</div>
+                  <div class="fileinfo">
+                    <div class="filename">Mitchell_Sarah_NewHire_Intake.pdf</div>
+                    <div class="filemeta">214 KB · uploaded by Rachel Thompson · 2026-05-15 09:18</div>
+                  </div>
+                  <div class="file-actions">
+                    <button class="icon-button" title="Preview" onclick="showToast('Preview opened')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="icon-button" title="Download" onclick="downloadFile('Mitchell_Sarah_NewHire_Intake.pdf')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                  </div>
+                </div>
+                <div class="attach docx">
+                  <div class="filetype">DOCX</div>
+                  <div class="fileinfo">
+                    <div class="filename">Employee_Dossier_EMP-2026-0847.docx</div>
+                    <div class="filemeta">98 KB · uploaded by Rachel Thompson · 2026-05-15 09:18</div>
+                  </div>
+                  <div class="file-actions">
+                    <button class="icon-button" title="Preview" onclick="showToast('Preview opened')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="icon-button" title="Download" onclick="downloadFile('Employee_Dossier_EMP-2026-0847.docx')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Composer / Activity -->
+            <div class="form-section">
+              <h3>Notes</h3>
+              <div class="composer" id="composer">
+                <div class="tabs">
+                  <button class="active" data-tab="worknotes">Work notes</button>
+                  <button data-tab="comments">Additional comments (Customer visible)</button>
+                </div>
+                <textarea id="workNote" placeholder="Paste verification details here (visible only to fulfiller group)..."></textarea>
+                <div class="composer-actions">
+                  <button class="btn btn-ghost" onclick="clearNote()">Clear</button>
+                  <button class="btn btn-primary" onclick="postNote()">Post</button>
+                </div>
+              </div>
+
+              <div class="activity" id="activityFeed">
+                <div class="activity-item">
+                  <div class="avatar-sm" style="background:#1f8476">RT</div>
+                  <div class="a-body">
+                    <div class="a-head"><strong>Rachel Thompson</strong> · created incident · 2026-05-15 09:18</div>
+                    <div class="a-content">Submitted via HR Portal. Vendor portal awaiting verification — please process ASAP.</div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="avatar-sm" style="background:#8a6d11">SD</div>
+                  <div class="a-body">
+                    <div class="a-head"><strong>Service Desk Routing</strong> · assigned to <strong>Ben Parker</strong> · 2026-05-15 09:22</div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="avatar-sm" style="background:#9da9af">BP</div>
+                  <div class="a-body">
+                    <div class="a-head"><strong>Ben Parker</strong> · work notes · 2026-05-15 09:30</div>
+                    <div class="a-content worknote">Opening Workday in adjacent tab to retrieve identifiers for EMP-2026-0847. Will confirm match and close.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ============== Incident data ============== */
+  const incidents = [
+    {
+      number: "INC0010234",
+      short: "Background Check Verification Required - New Hire Onboarding (S. Mitchell)",
+      priority: 3, priorityLabel: "3 - Moderate",
+      state: "In Progress", stateClass: "state-inprogress",
+      category: "HR / Onboarding",
+      group: "IT Service Desk – Tier 2",
+      assigned: { initials:"BP", name:"Ben Parker" },
+      updated: "2m ago",
+      pinned: true
+    },
+    {
+      number: "INC0010233",
+      short: "Outlook calendar sharing permissions not propagating",
+      priority: 4, priorityLabel: "4 - Low",
+      state: "In Progress", stateClass: "state-inprogress",
+      category: "Software",
+      group: "End User Computing",
+      assigned: { initials:"BP", name:"Ben Parker" },
+      updated: "1h ago"
+    },
+    {
+      number: "INC0010231",
+      short: "MFA token not syncing after device replacement",
+      priority: 2, priorityLabel: "2 - High",
+      state: "New", stateClass: "state-new",
+      category: "Identity / Access",
+      group: "IT Service Desk – Tier 2",
+      assigned: { initials:"BP", name:"Ben Parker" },
+      updated: "3h ago"
+    },
+    {
+      number: "INC0010230",
+      short: "VPN connection drops every 15 minutes",
+      priority: 3, priorityLabel: "3 - Moderate",
+      state: "On Hold", stateClass: "state-onhold",
+      category: "Network",
+      group: "Network Operations",
+      assigned: { initials:"BP", name:"Ben Parker" },
+      updated: "Yesterday"
+    },
+    {
+      number: "INC0010229",
+      short: "Printer offline - Floor 4 West",
+      priority: 4, priorityLabel: "4 - Low",
+      state: "Resolved", stateClass: "state-resolved",
+      category: "Hardware",
+      group: "Field Services",
+      assigned: { initials:"BP", name:"Ben Parker" },
+      updated: "2d ago"
+    }
+  ];
+
+  /* ============== Rendering ============== */
+  function renderRows(){
+    const tbody = document.getElementById('incidentRows');
+    tbody.innerHTML = '';
+    incidents.forEach(inc => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation()"/></td>
+        <td><a class="ref-link" href="#" onclick="event.preventDefault();event.stopPropagation();openTicket('${inc.number}')">${inc.number}</a></td>
+        <td title="${escapeAttr(inc.short)}">${inc.short}</td>
+        <td><span class="prio prio-${inc.priority}"><span class="dot"></span>${inc.priorityLabel}</span></td>
+        <td><span class="state ${inc.stateClass}">${inc.state}</span></td>
+        <td>${inc.category}</td>
+        <td>${inc.group}</td>
+        <td><span class="ref-pill"><span class="avatar-sm">${inc.assigned.initials}</span>${inc.assigned.name}</span></td>
+        <td>${inc.updated}</td>
+      `;
+      tr.addEventListener('click', () => openTicket(inc.number));
+      tbody.appendChild(tr);
+    });
+    document.getElementById('rowCount').textContent = `${incidents.length} rows`;
+  }
+  function escapeAttr(s){return String(s).replace(/"/g,'&quot;')}
+
+  /* ============== Session storage helpers ============== */
+  const SS_KEY = 'snw_inc0010234';
+
+  function loadSavedState(){
+    try { return JSON.parse(sessionStorage.getItem(SS_KEY)) || {}; } catch(e){ return {}; }
+  }
+
+  function persistState(patch){
+    const current = loadSavedState();
+    sessionStorage.setItem(SS_KEY, JSON.stringify(Object.assign(current, patch)));
+  }
+
+  /* ============== Navigation ============== */
+  function openTicket(number){
+    const inc = incidents.find(i => i.number === number);
+    if(!inc){ showToast('Ticket not found'); return; }
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('detailView').classList.add('active');
+    document.getElementById('d_number').textContent = inc.number;
+    document.getElementById('d_num_field').textContent = inc.number;
+
+    const ssnSection = document.getElementById('ssnSection');
+
+    if(inc.number === 'INC0010234'){
+      document.getElementById('d_short').value = 'Background Check Verification Required - New Hire Onboarding (Sarah Mitchell, EID EMP-2026-0847)';
+      // Show SSN section and restore saved values
+      ssnSection.style.display = '';
+      const saved = loadSavedState();
+      const ssnInput = document.getElementById('ssnInput');
+      const ssnStatus = document.getElementById('ssnStatus');
+      if(saved.ssn){
+        ssnInput.value = saved.ssn;
+        ssnStatus.textContent = '✓ Verified — entered ' + (saved.ssnSavedAt || 'earlier this session');
+        ssnStatus.style.color = '#2c7a3f';
+        ssnStatus.style.fontStyle = 'normal';
+        ssnStatus.style.fontWeight = '600';
+      } else {
+        ssnInput.value = '';
+        ssnStatus.textContent = '— Not yet entered —';
+        ssnStatus.style.color = '#6c777e';
+        ssnStatus.style.fontStyle = 'italic';
+        ssnStatus.style.fontWeight = '';
+      }
+    } else {
+      // Hide SSN section for other tickets
+      ssnSection.style.display = 'none';
+      document.getElementById('d_short').value = inc.short;
+      document.getElementById('d_desc').value = '(This ticket is included for list-view realism. The workshop scenario uses INC0010234.)';
+    }
+
+    document.querySelector('.form-scroll').scrollTop = 0;
+  }
+
+  function backToList(){
+    document.getElementById('detailView').classList.remove('active');
+    document.getElementById('listView').classList.remove('hidden');
+  }
+
+  function saveAndReturn(){
+    const currentNum = document.getElementById('d_number').textContent;
+    if(currentNum === 'INC0010234'){
+      const ssnVal = document.getElementById('ssnInput').value.trim();
+      if(ssnVal){
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        persistState({ ssn: ssnVal, ssnSavedAt: 'today at ' + timeStr });
+        showToast('Saved — SSN verification recorded');
+      } else {
+        showToast('Saved');
+      }
+    } else {
+      showToast('Saved');
+    }
+    setTimeout(() => backToList(), 700);
+  }
+
+  function goList(e){
+    if(e) e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if(e && e.target) e.target.classList.add('active');
+    backToList();
+  }
+
+  function toggleGroup(el){
+    const g = el.parentElement;
+    g.classList.toggle('collapsed');
+  }
+
+  /* ============== Composer ============== */
+  document.querySelectorAll('#composer .tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#composer .tabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      const ta = document.getElementById('workNote');
+      ta.placeholder = (tab === 'worknotes')
+        ? 'Paste verification details here (visible only to fulfiller group)...'
+        : 'Visible to caller. Type your update...';
+    });
+  });
+
+  function postNote(){
+    const ta = document.getElementById('workNote');
+    const text = ta.value.trim();
+    if(!text){ showToast('Nothing to post'); return; }
+    const feed = document.getElementById('activityFeed');
+    const item = document.createElement('div');
+    item.className = 'activity-item';
+    item.innerHTML = `
+      <div class="avatar-sm" style="background:#1f8476">BP</div>
+      <div class="a-body">
+        <div class="a-head"><strong>Ben Parker</strong> · work notes · just now</div>
+        <div class="a-content worknote"></div>
+      </div>`;
+    item.querySelector('.a-content').textContent = text;
+    feed.prepend(item);
+    ta.value = '';
+    showToast('Work note posted');
+  }
+  function clearNote(){ document.getElementById('workNote').value=''; }
+
+  function refresh(){ showToast('Refreshed'); }
+  function downloadFile(name){ showToast('Downloading ' + name + '…'); }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove('show'), 1600);
+  }
+
+  /* Boot */
+  renderRows();
+</script>
+</body>
+</html>
