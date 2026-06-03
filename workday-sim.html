@@ -205,6 +205,28 @@
   .quick-row{display:flex;gap:10px;padding:6px 0;align-items:center}
   .quick-row .avatar-sm{width:32px;height:32px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;background:#5BB85A;flex-shrink:0}
 
+  /* Document attachment row */
+  .doc-attach{
+    display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid #e4e7eb;border-radius:8px;
+    background:#fafbfc;transition:background .15s,border-color .15s;cursor:pointer
+  }
+  .doc-attach:hover{background:#f1f3f5;border-color:#cdd2d7}
+  .doc-attach .doc-icon{
+    width:42px;height:42px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#fff;flex-shrink:0
+  }
+  .doc-icon.docx{background:#2B579A}
+  .doc-icon.pdf{background:#D14545}
+  .doc-attach .doc-info{flex:1;min-width:0}
+  .doc-attach .doc-name{font-size:14px;font-weight:600;color:#2d2d2d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .doc-attach .doc-meta{font-size:12px;color:#7b8794;margin-top:2px}
+  .doc-attach .doc-actions{display:flex;gap:4px}
+  .doc-attach .doc-actions .icon-pill{width:32px;height:32px}
+  .doc-attach .doc-badge{
+    display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;
+    background:#FFF1D0;color:#8A6D11;margin-left:8px;flex-shrink:0
+  }
+
   /* Workday chat bubble */
   .wd-chat{
     position:fixed;bottom:22px;right:22px;width:48px;height:48px;border-radius:50%;
@@ -437,6 +459,43 @@
                 <div class="fld"><label>SSN — Country</label><div class="val">United States of America</div></div>
                 <div class="fld"><label>SSN — Issued Date</label><div class="val">2009-08-14</div></div>
                 <div class="fld"><label>SSN — Verification Status</label><div class="val"><span class="badge-tag">SSA Verified</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ ATTACHED DOCUMENTS ============ -->
+          <div class="card">
+            <div class="card-head">
+              <h2>Attached Documents</h2>
+              <span class="badge-tag gray">2 documents</span>
+              <div class="head-actions">
+                <div class="icon-pill" title="Upload document"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              </div>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <a class="doc-attach" href="Mitchell_BG_Check_Authorization.docx" download onclick="event.stopPropagation()">
+                <div class="doc-icon docx">DOCX</div>
+                <div class="doc-info">
+                  <div class="doc-name">Mitchell_BG_Check_Authorization.docx</div>
+                  <div class="doc-meta">Pre-Employment Background Check Authorization · Uploaded by Rachel Thompson · Apr 25, 2026 · 18 KB</div>
+                </div>
+                <span class="doc-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  PII
+                </span>
+                <div class="doc-actions">
+                  <div class="icon-pill" title="Download"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                </div>
+              </a>
+              <div class="doc-attach" onclick="showToast('Preview opened')" style="cursor:pointer">
+                <div class="doc-icon pdf">PDF</div>
+                <div class="doc-info">
+                  <div class="doc-name">Mitchell_Sarah_NewHire_Intake.pdf</div>
+                  <div class="doc-meta">New Hire Intake Form · Uploaded by Rachel Thompson · Apr 25, 2026 · 214 KB</div>
+                </div>
+                <div class="doc-actions">
+                  <div class="icon-pill" title="Preview"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                </div>
               </div>
             </div>
           </div>
